@@ -65,13 +65,17 @@ public class Reachability {
             int verticesCount = this.edges.length;
             for (int i = 0; i < verticesCount; i++) {
                 ArrayList<Integer> edge = this.edges[i];
-                if (edge.size() == 2) {
-                    int vehicleIndex1 = edge.get(0);
-                    int vehicleIndex2 = edge.get(1);
-                    Vertices vehicle1 = this.addVertices(vehicleIndex1);
-                    Vertices vehicle2 = this.addVertices(vehicleIndex2);
-                    vehicle1.addNeighbor(vehicle2);
-                    vehicle2.addNeighbor(vehicle1);
+                int index = 0;
+                Vertices base = null;
+                for (Integer key : edge) {
+                    if (index == 0) {
+                        base = this.addVertices(key);
+                    } else if (base != null) {
+                        Vertices vehicle2 = this.addVertices(key);
+                        base.addNeighbor(vehicle2);
+                        vehicle2.addNeighbor(base);
+                    }
+                    index++;
                 }
             }
         }
@@ -229,7 +233,7 @@ public class Reachability {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(2);
+                adj[0].add(1); adj[0].add(2); adj[0].add(2);
                 adj[1].add(3); adj[1].add(2);
                 adj[2].add(2); adj[2].add(3);
                 break;
@@ -250,9 +254,8 @@ public class Reachability {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(2);
-                adj[1].add(1); adj[1].add(2);
-                adj[2].add(4); adj[2].add(3);
+                adj[0].add(1); adj[0].add(2); adj[0].add(2);
+                adj[1].add(4); adj[1].add(3);
                 break;
             }
             case MY_COMPLEX_3: {
@@ -261,12 +264,9 @@ public class Reachability {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(2);
-                adj[1].add(1); adj[1].add(3);
-                adj[2].add(2); adj[2].add(4);
-                adj[3].add(2); adj[3].add(5);
-                adj[4].add(3); adj[4].add(5);
-                adj[5].add(3); adj[5].add(6);
+                adj[0].add(1); adj[0].add(2); adj[0].add(3);
+                adj[1].add(2); adj[1].add(4); adj[1].add(5);
+                adj[2].add(3); adj[2].add(5); adj[2].add(6);
                 break;
             }
             case BOOK_SUCCESS: {
