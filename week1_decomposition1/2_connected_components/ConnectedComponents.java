@@ -117,7 +117,7 @@ public class ConnectedComponents {
                     }
                 }
             }
-            return test == null ? null : test;
+            return test;
         }
 
         public int explore(int startIndex) {

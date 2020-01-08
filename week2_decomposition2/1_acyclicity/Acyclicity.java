@@ -8,6 +8,8 @@ public class Acyclicity {
         MY_SIMPLE,
         MY_SIMPLE_NO,
         MY_FULL,
+        MY_TREE,
+        MY_TREE_LOOP,
         BOOK_HAS,
         BOOK_HASNOT,
     }
@@ -17,13 +19,11 @@ public class Acyclicity {
     static class Vertices {
         public int index;
 
-        public boolean hasInput = false;
-
         public Vertices parent;
 
         public boolean visited = false;
 
-        public boolean asked = false;
+        public boolean reversed = false;
 
         private Map<Integer, Vertices> neighbors = new HashMap<Integer, Vertices>();
 
@@ -42,22 +42,29 @@ public class Acyclicity {
             this.visited = true;
         }
 
+        public void markReversed() {
+            this.reversed = true;
+        }
+
         public void setParent(Vertices parent) {
             this.parent = parent;
         }
 
-        public boolean hasChilds() {
-            return this.neighbors.size() > 0;
-        }
-
         public Vertices getUnvisitedNeighbor() {
+            boolean hasVisitedNotReversed = false;
             for (Integer index : this.neighbors.keySet()) {
                 Vertices neighbor = this.neighbors.get(index);
                 if (neighbor != null) {
                     if (!neighbor.visited) {
                         return neighbor;
                     }
+                    if (!neighbor.reversed) {
+                        hasVisitedNotReversed = true;
+                    }
                 }
+            }
+            if (hasVisitedNotReversed) {
+                throw new LoopError();
             }
             return null;
         }
@@ -91,7 +98,6 @@ public class Acyclicity {
                         base = this.addVertices(key);
                     } else if (base != null) {
                         Vertices vehicle2 = this.addVertices(key);
-                        vehicle2.hasInput = true;
                         base.addNeighbor(vehicle2);
                     }
                     index++;
@@ -115,9 +121,6 @@ public class Acyclicity {
             while (!exit) {
                 if (this.lastChecked > this.edgesLength) {
                     exit = true;
-                    if (test != null && test.asked && !test.visited) {
-                        throw new LoopError();
-                    }
                     return null;
                 }
                 test = this.vertices.get(this.lastChecked);
@@ -126,23 +129,18 @@ public class Acyclicity {
                     this.groups++;
                     this.lastChecked++;
                 } else {
-                    if (test.asked) {
-                        throw new LoopError();
-                    }
-                    test.asked = true;
-                    this.lastChecked++;
-                    if (!test.visited) { // !test.hasInput &&
+                    if (!test.visited) {
                         exit = true;
                         return test;
+                    } else {
+                        this.lastChecked++;
                     }
                 }
             }
             return test;
         }
 
-        public int explore(int startIndex) {
-            Vertices startVertices = this.vertices.get(startIndex);
-
+        public int explore(Vertices startVertices) {
             if (startVertices == null) {
                 return 0;
             }
@@ -154,28 +152,22 @@ public class Acyclicity {
                     exit = true;
                     return 0;
                 }
-                if (newVertices.visited) {
+                if (newVertices.visited && newVertices.index == startVertices.index) {
+                    newVertices.markReversed();
                     exit = true;
-                    throw new LoopError();
+                    return 0;
                 }
 
                 newVertices.markVisited();
 
-                boolean hasChilds = newVertices.hasChilds();
-
-                if (hasChilds) {
-                    Vertices newPossibleVertices = newVertices.getUnvisitedNeighbor();
-                    if (newPossibleVertices != null) {
-                        newPossibleVertices.setParent(newVertices);
-                        newVertices = newPossibleVertices;
-                    } else {
-                        exit = true;
-                        throw new LoopError();
-//                        return 0;
-                    }
+                Vertices newPossibleVertices = newVertices.getUnvisitedNeighbor();
+                if (newPossibleVertices == null) {
+                    newVertices.markReversed();
+                    newVertices = newVertices.parent;
                 } else {
-                    exit = true;
-                    return 0;
+                    newPossibleVertices.setParent(newVertices);
+                    newVertices = newPossibleVertices;
+
                 }
             }
             return 0;
@@ -193,7 +185,7 @@ public class Acyclicity {
                         exit = true;
                         return 0;
                     } else {
-                        this.explore(test.index);
+                        this.explore(test);
                         this.groups++;
                     }
                 }
@@ -236,19 +228,23 @@ public class Acyclicity {
     }
 
     public static void test() {
-//        expect(prepare(TestCase.EMPTY).hasCycle(), 0, "Empty list");
-//
-//        expect(prepare(TestCase.NO_EDGES).hasCycle(), 0, "No edges");
-//
-//        expect(prepare(TestCase.MY_SIMPLE).hasCycle(), 1, "My simple");
-//
-        expect(prepare(TestCase.MY_SIMPLE_NO).hasCycle(), 0, "My simple no");
-//
-//        expect(prepare(TestCase.MY_FULL).hasCycle(), 1, "My full");
-//
-//        expect(prepare(TestCase.BOOK_HAS).hasCycle(), 1, "Book has");
+        expect(prepare(TestCase.EMPTY).hasCycle(), 0, "Empty list");
 
-        // expect(prepare(TestCase.BOOK_HASNOT).hasCycle(), 0, "Book has not");
+        expect(prepare(TestCase.NO_EDGES).hasCycle(), 0, "No edges");
+
+        expect(prepare(TestCase.MY_SIMPLE).hasCycle(), 1, "My simple");
+
+        expect(prepare(TestCase.MY_SIMPLE_NO).hasCycle(), 0, "My simple no");
+
+        expect(prepare(TestCase.MY_FULL).hasCycle(), 1, "My full");
+
+        expect(prepare(TestCase.MY_TREE).hasCycle(), 0, "My tree");
+
+        expect(prepare(TestCase.MY_TREE_LOOP).hasCycle(), 1, "My tree loop");
+
+        expect(prepare(TestCase.BOOK_HAS).hasCycle(), 1, "Book has");
+
+         expect(prepare(TestCase.BOOK_HASNOT).hasCycle(), 0, "Book has not");
     };
 
     public static Engine prepare(TestCase testCase) {
@@ -305,6 +301,33 @@ public class Acyclicity {
                 adj[1].add(3); adj[1].add(2); adj[1].add(4);
                 adj[2].add(4); adj[2].add(2);
                 adj[3].add(2); adj[3].add(1);
+                break;
+            }
+            case MY_TREE: {
+                vertices = 9;
+                adj = (ArrayList<Integer>[])new ArrayList[vertices];
+                for (int i = 0; i < vertices; i++) {
+                    adj[i] = new ArrayList<Integer>();
+                }
+                adj[0].add(1); adj[0].add(2); adj[0].add(8);
+                adj[1].add(2); adj[1].add(3); adj[1].add(4);
+                adj[2].add(4); adj[2].add(5);
+                adj[3].add(5); adj[3].add(6); adj[3].add(7);
+                adj[4].add(8); adj[4].add(5); adj[4].add(9);
+                break;
+            }
+            case MY_TREE_LOOP: {
+                vertices = 9;
+                adj = (ArrayList<Integer>[])new ArrayList[vertices];
+                for (int i = 0; i < vertices; i++) {
+                    adj[i] = new ArrayList<Integer>();
+                }
+                adj[0].add(1); adj[0].add(2); adj[0].add(8);
+                adj[1].add(2); adj[1].add(3); adj[1].add(4);
+                adj[2].add(4); adj[2].add(5);
+                adj[3].add(5); adj[3].add(6); adj[3].add(7);
+                adj[4].add(8); adj[4].add(5); adj[4].add(9);
+                adj[5].add(7); adj[5].add(8);
                 break;
             }
             case BOOK_HAS: {
