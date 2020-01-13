@@ -1,8 +1,7 @@
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Scanner;
+import java.util.*;
 
 public class Toposort {
+
     private static ArrayList<Integer> toposort(ArrayList<Integer>[] adj) {
         int used[] = new int[adj.length];
         ArrayList<Integer> order = new ArrayList<Integer>();
@@ -10,8 +9,24 @@ public class Toposort {
         return order;
     }
 
-    private static void dfs(ArrayList<Integer>[] adj, int[] used, ArrayList<Integer> order, int s) {
+    private static void dfs(ArrayList<Integer>[] adj, int[] used, ArrayList<Integer> order, int start) {
       //write your code here
+        for (int i = 0; i < adj.length; i++) {
+            ArrayList<Integer> vertices = adj[i];
+
+        }
+
+        ArrayList<Integer> vertices = adj[start];
+
+        // mark visit
+        used[start] = 1;
+
+        for (int i = 0; i < vertices.size() - 1; i++) {
+            int next = vertices.get(i + 1);
+            if (used[next] != 0) {
+                dfs(adj, used, order, start);
+            }
+        }
     }
 
     public static void main(String[] args) {
