@@ -6,8 +6,8 @@ public class Toposort {
         int used[] = new int[adj.length];
         ArrayList<Integer> order = new ArrayList<Integer>();
 
-        for (int i = 1; i < adj.length + 1; i++) {
-            if (used[i - 1] == 0) {
+        for (int i = 0; i < adj.length; i++) {
+            if (used[i] == 0) {
                 // not visited
                 dfs(adj, used, order, i);
             }
@@ -17,10 +17,10 @@ public class Toposort {
     }
 
     private static void dfs(ArrayList<Integer>[] adj, int[] used, ArrayList<Integer> order, int start) {
-        if (used[start - 1] != 0) {
+        if (used[start] != 0) {
             return;
         }
-        used[start - 1] = 1;
+        used[start] = 1;
         ArrayList<Integer> vertices = findByIndex(adj, start);
 
         if (vertices != null) {
@@ -94,11 +94,11 @@ public class Toposort {
 //        for (int i = 0; i < vertices; i++) {
 //            adj[i] = new ArrayList<Integer>();
 //        }
-//        adj[0].add(1); adj[0].add(2);
-//        adj[1].add(4); adj[1].add(1);
-//        adj[2].add(3); adj[2].add(1);
-
-//        ArrayList<Integer> order = toposort(adj); // 2 3 1 4
+//        adj[0].add(0); adj[0].add(1);
+//        adj[1].add(3); adj[1].add(0);
+//        adj[2].add(2); adj[2].add(0);
+//
+//        ArrayList<Integer> order = toposort(adj); // 4 3 1 2
 
 //        int vertices = 5;
 //        ArrayList<Integer>[] adj = (ArrayList<Integer>[])new ArrayList[vertices];
