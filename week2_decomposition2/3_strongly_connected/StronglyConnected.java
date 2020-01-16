@@ -14,10 +14,29 @@ public class StronglyConnected {
     }
 
     static class Vertices {
+        public int index;
+
         public boolean visited = false;
 
         public int pre = -1;
         public int post = -1;
+
+        private Map<Integer, Vertices> neighbors = new HashMap<Integer, Vertices>();
+
+        private Map<Integer, Vertices> reverseNeighbors = new HashMap<Integer, Vertices>();
+
+        public Vertices(int index) {
+            this.index = index;
+        }
+
+        public void addNeighbor(Vertices neighbor) {
+            int index = neighbor.index;
+            if (!this.neighbors.containsKey(index)) {
+                this.neighbors.put(index, neighbor);
+            }
+        }
+
+
     }
 
     private static void dfs(ArrayList<Integer>[] adj, int[] used, Map<Integer, Vertices> state, int start) {
@@ -27,7 +46,7 @@ public class StronglyConnected {
         used[start] = 1;
         Vertices vertices = state.get(start);
         if (vertices == null) {
-            vertices = new Vertices();
+            vertices = new Vertices(start);
             state.put(start, vertices);
         }
         vertices.pre = counter;
@@ -60,9 +79,39 @@ public class StronglyConnected {
         return null;
     }
 
+    private static void fillReversed(ArrayList<Integer>[] adj, Map<Integer, Vertices> state) {
+        for (int index = 0; index < adj.length; index++) {
+            ArrayList<Integer> neighbors = adj[index];
+            if (neighbors != null) {
+                Vertices vertices = null;
+                int verticesIndex = -1;
+
+                for (int j = 0; j < neighbors.size(); j++) {
+                    int next = neighbors.get(j);
+                    if (j == 0) {
+                        vertices = new Vertices(next);
+                        verticesIndex = next;
+                    } else {
+                        Vertices newVertices = null;
+                        if (state.containsKey(next)) {
+                            newVertices = state.get(index);
+                        }
+                        newVertices = new Vertices(next);
+                        state.put(next, newVertices);
+
+                        vertices.addNeighbor(newVertices);
+                    }
+                }
+                state.put(verticesIndex, vertices);
+            }
+        }
+    }
+
     private static int numberOfSCC(ArrayList<Integer>[] adj) {
         int used[] = new int[adj.length];
         Map<Integer, Vertices> state = new HashMap<Integer, Vertices>();
+
+        fillReversed(adj, state);
 
         int counter = 1;
         for (int i = 0; i < adj.length; i++) {
