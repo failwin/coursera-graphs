@@ -5,21 +5,23 @@ public class StronglyConnected {
 
     public enum TestCase {
         EMPTY,
-        MY_SIMPLE,
+        NO_EDGES,
         MY_COMPLEX,
-        MY_COMPLEX_2,
-        MY_COMPLEX_3,
-        BOOK_SUCCESS,
-        BOOK_FAILED,
+        BOOK_YES,
+        BOOK_NO,
     }
 
     static class Vertices {
         public int index;
 
         public boolean visited = false;
+        public boolean visitedR = false;
 
         public int pre = -1;
         public int post = -1;
+
+        public int preR = -1;
+        public int postR = -1;
 
         private Map<Integer, Vertices> neighbors = new HashMap<Integer, Vertices>();
 
@@ -29,6 +31,22 @@ public class StronglyConnected {
             this.index = index;
         }
 
+        public void setVisited(boolean forReverse) {
+            if (forReverse) {
+                this.visitedR = true;
+            } else {
+                this.visited = true;
+            }
+        }
+
+        public boolean isVisited(boolean forReverse) {
+            if (forReverse) {
+                return this.visitedR;
+            } else {
+                return this.visited;
+            }
+        }
+
         public void addNeighbor(Vertices neighbor) {
             int index = neighbor.index;
             if (!this.neighbors.containsKey(index)) {
@@ -36,92 +54,143 @@ public class StronglyConnected {
             }
         }
 
+        public void addReversNeighbor(Vertices neighbor) {
+            int index = neighbor.index;
+            if (!this.reverseNeighbors.containsKey(index)) {
+                this.reverseNeighbors.put(index, neighbor);
+            }
+        }
 
+        public ArrayList<Vertices> getNeighbors(boolean forReverse) {
+            if (forReverse) {
+                return new ArrayList<Vertices>(this.reverseNeighbors.values());
+            }
+            return new ArrayList<Vertices>(this.neighbors.values());
+        }
+
+        public void setPre(int pre, boolean forReverse) {
+            if (forReverse) {
+                this.preR = pre;
+            } else {
+                this.pre = pre;
+            }
+        }
+
+        public int getPre(boolean forReverse) {
+            if (forReverse) {
+                return this.preR;
+            } else {
+                return this.pre;
+            }
+        }
+
+        public void setPost(int post, boolean forReverse) {
+            if (forReverse) {
+                this.postR = post;
+            } else {
+                this.post = post;
+            }
+        }
+
+        public int getPost(boolean forReverse) {
+            if (forReverse) {
+                return this.postR;
+            } else {
+                return this.post;
+            }
+        }
     }
 
-    private static void dfs(ArrayList<Integer>[] adj, int[] used, Map<Integer, Vertices> state, int start) {
-        if (used[start] != 0) {
+    private static void dfs(Vertices vertices, boolean forReverse) {
+        if (vertices.isVisited(forReverse)) {
             return;
         }
-        used[start] = 1;
-        Vertices vertices = state.get(start);
-        if (vertices == null) {
-            vertices = new Vertices(start);
-            state.put(start, vertices);
-        }
-        vertices.pre = counter;
+        vertices.setVisited(forReverse);
+
+        vertices.setPre(counter, forReverse);
         counter++;
 
-        ArrayList<Integer> neighbors = findByIndex(adj, start);
+        ArrayList<Vertices> neighbors = vertices.getNeighbors(forReverse);
 
         if (neighbors != null) {
             for (int i = 0; i < neighbors.size(); i++) {
-                int next = neighbors.get(i);
-                dfs(adj, used, state, next);
+                Vertices next = neighbors.get(i);
+                dfs(next, forReverse);
             }
         }
 
-        vertices.post = counter;
+        vertices.setPost(counter, forReverse);
         counter++;
     }
 
-    private static ArrayList<Integer> findByIndex(ArrayList<Integer>[] adj, int index) {
-        for (int i = 0; i < adj.length; i++) {
-            ArrayList<Integer> item = adj[i];
-            if (item != null && item.size() > 0 && item.get(0) == index) {
-                ArrayList<Integer> res = new ArrayList<Integer>();
-                for (int j = 1; j < item.size(); j++) {
-                    res.add(item.get(j));
-                }
-                return res;
-            }
+    private static Vertices getOrCreate(Map<Integer, Vertices> state, int index) {
+        if (state.containsKey(index)) {
+            return state.get(index);
         }
-        return null;
+        Vertices newVertices = new Vertices(index);
+        state.put(index, newVertices);
+        return newVertices;
     }
 
-    private static void fillReversed(ArrayList<Integer>[] adj, Map<Integer, Vertices> state) {
+    private static void fillGraph(ArrayList<Integer>[] adj, Map<Integer, Vertices> state) {
         for (int index = 0; index < adj.length; index++) {
-            ArrayList<Integer> neighbors = adj[index];
-            if (neighbors != null) {
-                Vertices vertices = null;
-                int verticesIndex = -1;
+            Vertices baseVertices = getOrCreate(state, index);
 
+            ArrayList<Integer> neighbors = adj[index];
+
+            if (neighbors.size() > 0) {
                 for (int j = 0; j < neighbors.size(); j++) {
                     int next = neighbors.get(j);
-                    if (j == 0) {
-                        vertices = new Vertices(next);
-                        verticesIndex = next;
-                    } else {
-                        Vertices newVertices = null;
-                        if (state.containsKey(next)) {
-                            newVertices = state.get(index);
-                        }
-                        newVertices = new Vertices(next);
-                        state.put(next, newVertices);
+                    if (j != 0) {
+                        Vertices childVertices = getOrCreate(state, next);
+                        baseVertices.addNeighbor(childVertices);
 
-                        vertices.addNeighbor(newVertices);
+                        childVertices.addReversNeighbor(baseVertices);
                     }
                 }
-                state.put(verticesIndex, vertices);
             }
         }
     }
 
+    static class VerticesPostRComparator implements Comparator<Vertices>
+    {
+        // Used for sorting in ascending order of
+        // roll number
+        public int compare(Vertices a, Vertices b)
+        {
+            return b.postR - a.postR;
+        }
+    }
+
+    static VerticesPostRComparator verticesPostRComparator = new VerticesPostRComparator();
+
     private static int numberOfSCC(ArrayList<Integer>[] adj) {
-        int used[] = new int[adj.length];
-        Map<Integer, Vertices> state = new HashMap<Integer, Vertices>();
+        Map<Integer, Vertices> graph = new HashMap<Integer, Vertices>();
 
-        fillReversed(adj, state);
+        fillGraph(adj, graph);
 
+        // DFS for revert graph
         int counter = 1;
         for (int i = 0; i < adj.length; i++) {
-            if (used[i] == 0) {
-                // not visited
-                dfs(adj, used, state, i);
-            }
+            Vertices vertices = getOrCreate(graph, i);
+            dfs(vertices, true);
         }
 
-        return 0;
+        // sort
+        ArrayList<Vertices> list = new ArrayList<Vertices>(graph.values());
+        //Vertices[] sorted = new Vertices[graph.size()];
+        Collections.sort(list, verticesPostRComparator);
+
+        int SCCcount = 0;
+        for (int i = 0; i < list.size(); i++) {
+            Vertices vertices = list.get(i);
+            if (!vertices.isVisited(false)) {
+                SCCcount++;
+            }
+            dfs(vertices, false);
+        }
+
+        return SCCcount;
     }
 
     public static void main(String[] args) {
@@ -149,8 +218,15 @@ public class StronglyConnected {
     }
 
     public static void test() {
-        // should return 0 if no Start vertices
-        expect(numberOfSCC(prepare(TestCase.MY_COMPLEX)), 0, "Empty list");
+        expect(numberOfSCC(prepare(TestCase.EMPTY)), 0, "Empty");
+
+        expect(numberOfSCC(prepare(TestCase.NO_EDGES)), 5, "No edges");
+
+        expect(numberOfSCC(prepare(TestCase.MY_COMPLEX)), 3, "My complex");
+
+        expect(numberOfSCC(prepare(TestCase.BOOK_YES)), 2, "Book yes");
+
+        expect(numberOfSCC(prepare(TestCase.BOOK_NO)), 5, "Book no");
     };
 
     public static ArrayList<Integer>[] prepare(TestCase testCase) {
@@ -166,16 +242,13 @@ public class StronglyConnected {
                 }
                 return adj;
             }
-            case MY_SIMPLE: {
-                vertices= 3;
+            case NO_EDGES: {
+                vertices = 5;
                 adj = (ArrayList<Integer>[])new ArrayList[vertices];
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(2); adj[0].add(2);
-                adj[1].add(3); adj[1].add(2);
-                adj[2].add(2); adj[2].add(3);
-                return adj;
+                break;
             }
             case MY_COMPLEX: {
                 vertices = 5;
@@ -183,53 +256,34 @@ public class StronglyConnected {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(2);
-                adj[1].add(2); adj[1].add(3);
-                adj[2].add(3); adj[2].add(4);
-                adj[3].add(4); adj[3].add(2);
+                adj[0].add(0); adj[0].add(1);
+                adj[1].add(1); adj[1].add(2);
+                adj[2].add(2); adj[2].add(3);
+                adj[3].add(3); adj[3].add(1);
                 return adj;
             }
-            case MY_COMPLEX_2: {
-                vertices= 4;
-                adj = (ArrayList<Integer>[])new ArrayList[vertices];
-                for (int i = 0; i < vertices; i++) {
-                    adj[i] = new ArrayList<Integer>();
-                }
-                adj[0].add(1); adj[0].add(2); adj[0].add(2);
-                adj[1].add(4); adj[1].add(3);
-                return adj;
-            }
-            case MY_COMPLEX_3: {
-                vertices= 6;
-                adj = (ArrayList<Integer>[])new ArrayList[vertices];
-                for (int i = 0; i < vertices; i++) {
-                    adj[i] = new ArrayList<Integer>();
-                }
-                adj[0].add(1); adj[0].add(2); adj[0].add(3);
-                adj[1].add(2); adj[1].add(4); adj[1].add(5);
-                adj[2].add(3); adj[2].add(5); adj[2].add(6);
-                return adj;
-            }
-            case BOOK_SUCCESS: {
+            case BOOK_YES: {
                 vertices = 4;
                 adj = (ArrayList<Integer>[])new ArrayList[vertices];
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(2);
-                adj[1].add(3); adj[1].add(2);
-                adj[2].add(4); adj[2].add(3);
-                adj[3].add(1); adj[3].add(4);
+                adj[0].add(0); adj[0].add(1);
+                adj[1].add(1); adj[1].add(2);
+                adj[2].add(2); adj[2].add(0);
+                adj[3].add(3); adj[3].add(0);
                 return adj;
             }
-            case BOOK_FAILED: {
-                vertices = 4;
+            case BOOK_NO: {
+                vertices = 5;
                 adj = (ArrayList<Integer>[])new ArrayList[vertices];
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(2);
-                adj[1].add(3); adj[1].add(2);
+                adj[1].add(1); adj[1].add(0);
+                adj[2].add(2); adj[2].add(1); adj[2].add(0);
+                adj[3].add(3); adj[3].add(2); adj[3].add(0);
+                adj[4].add(4); adj[4].add(1); adj[3].add(2);
                 return adj;
             }
         }
