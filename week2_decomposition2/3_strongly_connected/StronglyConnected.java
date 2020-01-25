@@ -248,7 +248,7 @@ public class StronglyConnected {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                break;
+                return adj;
             }
             case MY_COMPLEX: {
                 vertices = 5;
