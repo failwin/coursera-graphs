@@ -91,14 +91,10 @@ public class NegativeCycle {
         }
     }
 
-    private static boolean explore(Map<Integer, Vertices> graph, int start, int count) {
+    private static boolean explore(Map<Integer, Vertices> graph, int count) {
         boolean hasChanges = false;
         for (int i = 0; i < count; i++) {
-            int index = start + i;
-            if (index >= count) {
-                index = index - count;
-            }
-            Vertices parent = getOrCreate(graph, index);
+            Vertices parent = getOrCreate(graph, i);
             int parentCost = parent.cost;
 
             if (parentCost != Integer.MAX_VALUE) {
@@ -108,6 +104,7 @@ public class NegativeCycle {
                     int childCost = item.getParentCost(parent.index);
                     if (item.cost > parentCost + childCost) {
                         item.cost = parentCost + childCost;
+//                        System.out.println("      Child " + item.index + " cost: " + item.cost);
                         item.parent = parent.index;
                         hasChanges = true;
                     }
@@ -126,14 +123,16 @@ public class NegativeCycle {
         start.cost = 0;
 
         int count = adj.length;
-        for (int i = 0; i < count; i++) {
-            boolean hasChanges = explore(graph, i, count);
+        for (int i = 0; i < count - 1; i++) {
+//            System.out.println("Step " + i + " start");
+            boolean hasChanges = explore(graph, count);
             if (!hasChanges) {
                 return 0;
             }
+//            System.out.println("Step " + i + " stop");
         }
 
-        boolean hasChanges = explore(graph, 0, count);
+        boolean hasChanges = explore(graph, count);
 
         return hasChanges ? 1 : 0;
     }
@@ -183,6 +182,11 @@ public class NegativeCycle {
 //        );
 
         expect(
+                negativeCycle(prepare(TestCase.MY_COMPLEX, false), prepare(TestCase.MY_COMPLEX, true)),
+                0,"My complex"
+        );
+
+        expect(
                 negativeCycle(prepare(TestCase.BOOK_YES, false), prepare(TestCase.BOOK_YES, true)),
                 1,"Book yes"
         );
@@ -225,19 +229,19 @@ public class NegativeCycle {
                 return isCost ? cost : adj;
             }
             case MY_COMPLEX: {
-                vertices = 10;
+                vertices = 7;
                 adj = (ArrayList<Integer>[])new ArrayList[vertices];
                 cost = (ArrayList<Integer>[])new ArrayList[vertices];
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                     cost[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(2); cost[0].add(1);
-                adj[1].add(0); cost[1].add(1); adj[1].add(3); cost[1].add(1);
-                adj[2].add(6); cost[2].add(1);
-                adj[4].add(1); cost[4].add(1); adj[4].add(7); cost[4].add(1);
-                adj[5].add(2); cost[5].add(1);
-                adj[7].add(5); cost[7].add(1); adj[7].add(8); cost[7].add(1); adj[7].add(9); cost[7].add(1);
+                adj[0].add(1); cost[0].add(1);
+                adj[1].add(2); cost[1].add(1);
+                adj[2].add(3); cost[2].add(1); adj[2].add(4); cost[2].add(2);
+                adj[3].add(5); cost[3].add(2); adj[3].add(6); cost[3].add(1);
+                adj[4].add(3); cost[4].add(-2);
+                adj[5].add(2); cost[5].add(-2);
                 return isCost ? cost : adj;
             }
             case BOOK_YES: {
