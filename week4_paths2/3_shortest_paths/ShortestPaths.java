@@ -1,4 +1,3 @@
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class ShortestPaths {
@@ -7,16 +6,14 @@ public class ShortestPaths {
         EMPTY,
         NO_EDGES,
         MY_SIMPLE,
-        MY_COMPLEX,
-        BOOK_YES,
+        BOOK_YES_1,
         BOOK_YES_2,
-        BOOK_NO,
     }
 
     static class Vertices {
         public int index;
 
-        private boolean visited = false;
+        private boolean inNegativeLoop = false;
 
         public int parent = -1;
 
@@ -54,7 +51,7 @@ public class ShortestPaths {
         public ArrayList<Vertices> getNeighbors() {
             ArrayList<Vertices> items = new ArrayList<Vertices>();
             for (Vertices item : this.neighbors.values()) {
-                if (item != null && !item.visited) {
+                if (item != null) {
                     items.add(item);
                 }
             }
@@ -93,8 +90,8 @@ public class ShortestPaths {
         }
     }
 
-    private static boolean explore(Map<Integer, Vertices> graph, int count) {
-        boolean hasChanges = false;
+    private static int explore(Map<Integer, Vertices> graph, int count) {
+        int lastChanged = -1;
         for (int i = 0; i < count; i++) {
             Vertices parent = getOrCreate(graph, i);
             long parentCost = parent.cost;
@@ -107,12 +104,23 @@ public class ShortestPaths {
                     if (item.cost > parentCost + childCost) {
                         item.cost = parentCost + childCost;
                         item.parent = parent.index;
-                        hasChanges = true;
+                        lastChanged = item.index;
                     }
                 }
             }
         }
-        return hasChanges;
+        return lastChanged;
+    }
+
+    private static void markNegativeLoop(Map<Integer, Vertices> graph, int index) {
+        Vertices item = getOrCreate(graph, index);
+        if (item.inNegativeLoop) {
+            return;
+        }
+        item.inNegativeLoop = true;
+        item.cost = - Long.MAX_VALUE;
+
+        markNegativeLoop(graph, item.parent);
     }
 
     private static Map<Integer, Vertices> shortestPaths(ArrayList<Integer>[] adj, ArrayList<Integer>[] cost, int s) {
@@ -120,15 +128,22 @@ public class ShortestPaths {
 
         fillGraph(graph, adj, cost);
 
-        Vertices start = getOrCreate(graph, s);
-        start.cost = 0;
-
         int count = adj.length;
+
+        if (count > 0) {
+            Vertices start = getOrCreate(graph, s);
+            start.cost = 0;
+        }
+
         for (int i = 0; i < count - 1; i++) {
             explore(graph, count);
         }
 
-        // explore(graph, count);
+        int lastChanged = explore(graph, count);
+
+        if (lastChanged > -1) {
+            markNegativeLoop(graph, lastChanged);
+        }
 
         return graph;
     }
@@ -161,18 +176,9 @@ public class ShortestPaths {
 //        int s = scanner.nextInt() - 1;
 //
 //        Map<Integer, Vertices> graph = shortestPaths(adj, cost, s);
-//        int size = graph.size();
-//
-//        for (int i = 0; i < n; i++) {
-//            Vertices item = getOrCreate(graph, i);
-////            item.cost;
-////            if (reachable[i] == 0) {
-////                System.out.println('*');
-////            } else if (shortest[i] == 0) {
-////                System.out.println('-');
-////            } else {
-////                System.out.println(distance[i]);
-////            }
+//        String[] list = getList(graph);
+//        for (String item : list) {
+//            System.out.println('*');
 //        }
     }
 
@@ -183,7 +189,7 @@ public class ShortestPaths {
             if (item.cost == Long.MAX_VALUE) {
                 list[item.index] = "*";
             }
-            if (item.cost == -Long.MAX_VALUE) {
+            if (item.cost == - Long.MAX_VALUE) {
                 list[item.index] = "-";
             }
         }
@@ -194,41 +200,39 @@ public class ShortestPaths {
         Map<Integer, Vertices> graph;
 
         graph = shortestPaths(
+                prepare(TestCase.EMPTY, false),
+                prepare(TestCase.EMPTY, true),
+                0
+        );
+        expect(getList(graph), new String[]{}, "Empty");
+
+        graph = shortestPaths(
+                prepare(TestCase.NO_EDGES, false),
+                prepare(TestCase.NO_EDGES, true),
+                0
+        );
+        expect(getList(graph), new String[]{"0", "*", "*", "*", "*"}, "No edges");
+
+        graph = shortestPaths(
             prepare(TestCase.MY_SIMPLE, false),
             prepare(TestCase.MY_SIMPLE, true),
             0
         );
         expect(getList(graph), new String[]{"0", "1", "3", "6"}, "My simple");
 
-//        expect(
-//                shortestPaths(prepare(TestCase.EMPTY, false), prepare(TestCase.EMPTY, true), 0),
-//                0,"Empty"
-//        );
+        graph = shortestPaths(
+                prepare(TestCase.BOOK_YES_1, false),
+                prepare(TestCase.BOOK_YES_1, true),
+                0
+        );
+        expect(getList(graph), new String[]{"0", "10", "-", "-", "-", "*"}, "Book yes 1");
 
-//        expect(
-//                negativeCycle(prepare(TestCase.NO_EDGES, false), prepare(TestCase.NO_EDGES, true)),
-//                0,"No edges"
-//        );
-//
-//        expect(
-//                negativeCycle(prepare(TestCase.MY_COMPLEX, false), prepare(TestCase.MY_COMPLEX, true)),
-//                3,"My complex"
-//        );
-//
-//        expect(
-//                negativeCycle(prepare(TestCase.BOOK_YES, false), prepare(TestCase.BOOK_YES, true)),
-//                1,"Book yes"
-//        );
-
-//        expect(
-//                negativeCycle(prepare(TestCase.BOOK_YES_2, false), prepare(TestCase.BOOK_YES_2, true)),
-//                6,"Book yes 2"
-//        );
-//
-//        expect(
-//                negativeCycle(prepare(TestCase.BOOK_NO, false), prepare(TestCase.BOOK_NO, true)),
-//                -1,"Book no"
-//        );
+        graph = shortestPaths(
+                prepare(TestCase.BOOK_YES_2, false),
+                prepare(TestCase.BOOK_YES_2, true),
+                3
+        );
+        expect(getList(graph), new String[]{"-", "-", "-", "0", "*"}, "Book yes 2");
     };
 
     public static ArrayList<Integer>[] prepare(TestCase testCase, boolean isCost) {
@@ -270,32 +274,20 @@ public class ShortestPaths {
                 adj[2].add(3); cost[2].add(3);
                 return isCost ? cost : adj;
             }
-            case MY_COMPLEX: {
-                vertices = 5;
+            case BOOK_YES_1: {
+                vertices = 6;
                 adj = (ArrayList<Integer>[])new ArrayList[vertices];
                 cost = (ArrayList<Integer>[])new ArrayList[vertices];
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                     cost[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); cost[0].add(1);
-                adj[1].add(2); cost[1].add(-5);
-                adj[2].add(3); cost[2].add(1); adj[2].add(4); cost[2].add(2);
-                adj[4].add(1); cost[4].add(1);
-                return isCost ? cost : adj;
-            }
-            case BOOK_YES: {
-                vertices = 4;
-                adj = (ArrayList<Integer>[])new ArrayList[vertices];
-                cost = (ArrayList<Integer>[])new ArrayList[vertices];
-                for (int i = 0; i < vertices; i++) {
-                    adj[i] = new ArrayList<Integer>();
-                    cost[i] = new ArrayList<Integer>();
-                }
-                adj[0].add(1); cost[0].add(-5);
-                adj[1].add(2); cost[1].add(2);
-                adj[2].add(0); cost[2].add(1);
-                //adj[3].add(0); cost[3].add(2);
+                adj[0].add(1); cost[0].add(10); adj[0].add(2); cost[0].add(100);
+                adj[1].add(2); cost[1].add(5);
+                adj[2].add(4); cost[2].add(7);
+                adj[3].add(2); cost[3].add(-18);
+                adj[4].add(3); cost[4].add(10);
+                adj[5].add(0); cost[5].add(-1);
                 return isCost ? cost : adj;
             }
             case BOOK_YES_2: {
@@ -306,22 +298,10 @@ public class ShortestPaths {
                     adj[i] = new ArrayList<Integer>();
                     cost[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); cost[0].add(4); adj[0].add(2); cost[0].add(2);
-                adj[1].add(2); cost[1].add(2); adj[1].add(3); cost[1].add(2); adj[1].add(4); cost[1].add(3);
-                adj[2].add(1); cost[2].add(1); adj[2].add(4); cost[2].add(4); adj[2].add(3); cost[2].add(4);
-                adj[4].add(3); cost[4].add(1);
-                return isCost ? cost : adj;
-            }
-            case BOOK_NO: {
-                vertices = 3;
-                adj = (ArrayList<Integer>[])new ArrayList[vertices];
-                cost = (ArrayList<Integer>[])new ArrayList[vertices];
-                for (int i = 0; i < vertices; i++) {
-                    adj[i] = new ArrayList<Integer>();
-                    cost[i] = new ArrayList<Integer>();
-                }
-                adj[0].add(1); cost[0].add(7); adj[0].add(2); cost[0].add(5);
+                adj[0].add(1); cost[0].add(1);
                 adj[1].add(2); cost[1].add(2);
+                adj[2].add(0); cost[2].add(-5);
+                adj[3].add(0); cost[3].add(2);
                 return isCost ? cost : adj;
             }
         }
