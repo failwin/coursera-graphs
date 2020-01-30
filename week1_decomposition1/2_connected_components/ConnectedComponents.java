@@ -55,7 +55,7 @@ public class ConnectedComponents {
         private ArrayList<Integer>[] edges;
         private int edgesLength;
 
-        int lastChecked = 1;
+        int lastChecked = 0;
 
         int groups = 0;
 
@@ -68,19 +68,13 @@ public class ConnectedComponents {
 
         private void fillMap() {
             int verticesCount = this.edges.length;
-            for (int i = 0; i < verticesCount; i++) {
-                ArrayList<Integer> edge = this.edges[i];
-                int index = 0;
-                Vertices base = null;
-                for (Integer key : edge) {
-                    if (index == 0) {
-                        base = this.addVertices(key);
-                    } else if (base != null) {
-                        Vertices vehicle2 = this.addVertices(key);
-                        base.addNeighbor(vehicle2);
-                        vehicle2.addNeighbor(base);
-                    }
-                    index++;
+            for (int start = 0; start < verticesCount; start++) {
+                ArrayList<Integer> edge = this.edges[start];
+                Vertices base = this.addVertices(start);
+                for (Integer stop : edge) {
+                    Vertices vehicle2 = this.addVertices(stop);
+                    base.addNeighbor(vehicle2);
+                    vehicle2.addNeighbor(base);
                 }
             }
         }
@@ -99,7 +93,7 @@ public class ConnectedComponents {
 
             boolean exit = false;
             while (!exit) {
-                if (this.lastChecked > this.edgesLength) {
+                if (this.lastChecked > this.edgesLength - 1) {
                     exit = true;
                     return null;
                 }
@@ -178,28 +172,28 @@ public class ConnectedComponents {
     }
 
     public static void main(String[] args) {
-        try {
-            test();
-            System.out.println("Tests passed");
-        } catch (Error err) {
-            System.out.println(err.getMessage());
-        }
+//        try {
+//            test();
+//            System.out.println("Tests passed");
+//        } catch (Error err) {
+//            System.out.println(err.getMessage());
+//        }
 
-//        Scanner scanner = new Scanner(System.in);
-//        int n = scanner.nextInt();
-//        int m = scanner.nextInt();
-//        ArrayList<Integer>[] adj = (ArrayList<Integer>[])new ArrayList[n];
-//        for (int i = 0; i < n; i++) {
-//            adj[i] = new ArrayList<Integer>();
-//        }
-//        for (int i = 0; i < m; i++) {
-//            int x, y;
-//            x = scanner.nextInt();
-//            y = scanner.nextInt();
-//            adj[x - 1].add(y - 1);
-//            adj[y - 1].add(x - 1);
-//        }
-//        System.out.println(numberOfComponents(adj));
+        Scanner scanner = new Scanner(System.in);
+        int n = scanner.nextInt();
+        int m = scanner.nextInt();
+        ArrayList<Integer>[] adj = (ArrayList<Integer>[])new ArrayList[n];
+        for (int i = 0; i < n; i++) {
+            adj[i] = new ArrayList<Integer>();
+        }
+        for (int i = 0; i < m; i++) {
+            int x, y;
+            x = scanner.nextInt();
+            y = scanner.nextInt();
+            adj[x - 1].add(y - 1);
+            adj[y - 1].add(x - 1);
+        }
+        System.out.println(numberOfComponents(adj));
     }
 
     public static void test() {
@@ -244,7 +238,7 @@ public class ConnectedComponents {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(2);
+                adj[0].add(1);
                 break;
             }
             case MY_COMPLEX: {
@@ -253,9 +247,9 @@ public class ConnectedComponents {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(4);
-                adj[1].add(6); adj[1].add(4);
-                adj[2].add(7); adj[2].add(5);
+                adj[0].add(3);
+                adj[3].add(5);
+                adj[4].add(6);
                 break;
             }
             case MY_FULL: {
@@ -264,13 +258,20 @@ public class ConnectedComponents {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(4);
-                adj[1].add(6); adj[1].add(4);
-                adj[2].add(7); adj[2].add(5);
-                adj[3].add(7); adj[3].add(4);
-                adj[4].add(2); adj[4].add(4);
-                adj[5].add(1); adj[5].add(3);
-                adj[6].add(3); adj[6].add(6);
+                adj[0].add(2);
+                adj[0].add(3);
+                adj[1].add(3);
+                adj[2].add(0);
+                adj[2].add(5);
+                adj[2].add(5);
+                adj[3].add(1);
+                adj[3].add(0);
+                adj[3].add(6);
+                adj[3].add(5);
+                adj[4].add(6);
+                adj[5].add(2);
+                adj[5].add(3);
+                adj[6].add(4);
                 break;
             }
             case BOOK_SUCCESS: {
@@ -279,8 +280,8 @@ public class ConnectedComponents {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(2);
-                adj[1].add(3); adj[1].add(2);
+                adj[0].add(1);
+                adj[1].add(2);
                 break;
             }
         }
@@ -289,7 +290,7 @@ public class ConnectedComponents {
 
     public static void expect(int actual, int expect, String messgae) {
         if (actual != expect) {
-            throw new Error("Error: " + messgae);
+            throw new Error("Error: " + messgae + ", actual: " + actual);
         }
     }
 }
