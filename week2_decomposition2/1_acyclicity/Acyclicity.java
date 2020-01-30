@@ -89,18 +89,12 @@ public class Acyclicity {
 
         private void fillMap() {
             int verticesCount = this.edges.length;
-            for (int i = 0; i < verticesCount; i++) {
-                ArrayList<Integer> edge = this.edges[i];
-                int index = 0;
-                Vertices base = null;
-                for (Integer key : edge) {
-                    if (index == 0) {
-                        base = this.addVertices(key);
-                    } else if (base != null) {
-                        Vertices vehicle2 = this.addVertices(key);
-                        base.addNeighbor(vehicle2);
-                    }
-                    index++;
+            for (int start = 0; start < verticesCount; start++) {
+                ArrayList<Integer> edge = this.edges[start];
+                Vertices base = this.addVertices(start);
+                for (Integer stop : edge) {
+                    Vertices vehicle2 = this.addVertices(stop);
+                    base.addNeighbor(vehicle2);
                 }
             }
         }
@@ -119,7 +113,7 @@ public class Acyclicity {
 
             boolean exit = false;
             while (!exit) {
-                if (this.lastChecked > this.edgesLength) {
+                if (this.lastChecked > this.edgesLength - 1) {
                     exit = true;
                     return null;
                 }
@@ -204,27 +198,27 @@ public class Acyclicity {
     }
 
     public static void main(String[] args) {
-        try {
-            test();
-            System.out.println("Tests passed");
-        } catch (Error err) {
-            System.out.println(err.getMessage());
-        }
+//        try {
+//            test();
+//            System.out.println("Tests passed");
+//        } catch (Error err) {
+//            System.out.println(err.getMessage());
+//        }
 
-//        Scanner scanner = new Scanner(System.in);
-//        int n = scanner.nextInt();
-//        int m = scanner.nextInt();
-//        ArrayList<Integer>[] adj = (ArrayList<Integer>[])new ArrayList[n];
-//        for (int i = 0; i < n; i++) {
-//            adj[i] = new ArrayList<Integer>();
-//        }
-//        for (int i = 0; i < m; i++) {
-//            int x, y;
-//            x = scanner.nextInt();
-//            y = scanner.nextInt();
-//            adj[x - 1].add(y - 1);
-//        }
-//        System.out.println(acyclic(adj));
+        Scanner scanner = new Scanner(System.in);
+        int n = scanner.nextInt();
+        int m = scanner.nextInt();
+        ArrayList<Integer>[] adj = (ArrayList<Integer>[])new ArrayList[n];
+        for (int i = 0; i < n; i++) {
+            adj[i] = new ArrayList<Integer>();
+        }
+        for (int i = 0; i < m; i++) {
+            int x, y;
+            x = scanner.nextInt();
+            y = scanner.nextInt();
+            adj[x - 1].add(y - 1);
+        }
+        System.out.println(acyclic(adj));
     }
 
     public static void test() {
@@ -236,11 +230,11 @@ public class Acyclicity {
 
         expect(prepare(TestCase.MY_SIMPLE_NO).hasCycle(), 0, "My simple no");
 
-        expect(prepare(TestCase.MY_FULL).hasCycle(), 1, "My full");
-
-        expect(prepare(TestCase.MY_TREE).hasCycle(), 0, "My tree");
-
-        expect(prepare(TestCase.MY_TREE_LOOP).hasCycle(), 1, "My tree loop");
+//        expect(prepare(TestCase.MY_FULL).hasCycle(), 1, "My full");
+//
+//        expect(prepare(TestCase.MY_TREE).hasCycle(), 0, "My tree");
+//
+//        expect(prepare(TestCase.MY_TREE_LOOP).hasCycle(), 1, "My tree loop");
 
         expect(prepare(TestCase.BOOK_HAS).hasCycle(), 1, "Book has");
 
@@ -274,10 +268,10 @@ public class Acyclicity {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(2); adj[0].add(3);
-                adj[1].add(3); adj[1].add(4);
-                adj[2].add(4); adj[2].add(5);
-                adj[3].add(5); adj[3].add(3);
+                adj[1].add(2);
+                adj[2].add(3);
+                adj[3].add(4);
+                adj[4].add(2);
                 break;
             }
             case MY_SIMPLE_NO: {
@@ -286,9 +280,9 @@ public class Acyclicity {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(5);
-                adj[1].add(3); adj[1].add(2);
-                adj[2].add(2); adj[2].add(4);
+                adj[0].add(4);
+                adj[1].add(2);
+                adj[1].add(3);
                 break;
             }
             case MY_FULL: {
@@ -336,10 +330,10 @@ public class Acyclicity {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(2);
-                adj[1].add(4); adj[1].add(1);
-                adj[2].add(2); adj[2].add(3);
-                adj[3].add(3); adj[3].add(1);
+                adj[0].add(1);
+                adj[1].add(2);
+                adj[2].add(0);
+                adj[3].add(0);
                 break;
             }
             case BOOK_HASNOT: {
@@ -348,9 +342,9 @@ public class Acyclicity {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); adj[0].add(2); adj[0].add(3); adj[0].add(4);
-                adj[1].add(2); adj[1].add(3); adj[1].add(5);
-                adj[2].add(3); adj[2].add(4); adj[2].add(5);
+                adj[0].add(1); adj[0].add(2); adj[0].add(3);
+                adj[1].add(2); adj[1].add(4);
+                adj[2].add(3); adj[2].add(4);
                 break;
             }
         }
