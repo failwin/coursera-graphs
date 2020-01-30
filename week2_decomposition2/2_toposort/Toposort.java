@@ -21,7 +21,7 @@ public class Toposort {
             return;
         }
         used[start] = 1;
-        ArrayList<Integer> vertices = findByIndex(adj, start);
+        ArrayList<Integer> vertices = adj[start];
 
         if (vertices != null) {
             for (int i = 0; i < vertices.size(); i++) {
@@ -30,20 +30,6 @@ public class Toposort {
             }
         }
         order.add(start);
-    }
-
-    private static ArrayList<Integer> findByIndex(ArrayList<Integer>[] adj, int index) {
-        for (int i = 0; i < adj.length; i++) {
-            ArrayList<Integer> item = adj[i];
-            if (item != null && item.size() > 0 && item.get(0) == index) {
-                ArrayList<Integer> res = new ArrayList<Integer>();
-                for (int j = 1; j < item.size(); j++) {
-                    res.add(item.get(j));
-                }
-                return res;
-            }
-        }
-        return null;
     }
 
     public static void main(String[] args) {
@@ -97,7 +83,7 @@ public class Toposort {
 //        adj[0].add(0); adj[0].add(1);
 //        adj[1].add(3); adj[1].add(0);
 //        adj[2].add(2); adj[2].add(0);
-//
+
 //        ArrayList<Integer> order = toposort(adj); // 4 3 1 2
 
 //        int vertices = 5;
@@ -135,7 +121,18 @@ public class Toposort {
 //
 //        ArrayList<Integer> order = toposort(adj); // 7 8 6 4 2 1 5 3
 
-//        int b = 10;
+        int vertices = 4;
+        ArrayList<Integer>[] adj = (ArrayList<Integer>[])new ArrayList[vertices];
+        for (int i = 0; i < vertices; i++) {
+            adj[i] = new ArrayList<Integer>();
+        }
+        adj[0].add(1);
+        adj[2].add(0);
+        adj[3].add(2); adj[3].add(0);
+
+        ArrayList<Integer> order = toposort(adj); // 4 3 1 2
+
+        int b = 10;
     }
 
     public static void expect(int actual, int expect, String messgae) {
