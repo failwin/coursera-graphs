@@ -70,11 +70,9 @@ public class BFS {
             if (neighbors.size() > 0) {
                 for (int j = 0; j < neighbors.size(); j++) {
                     int next = neighbors.get(j);
-                    if (j != 0) {
-                        Vertices childVertices = getOrCreate(state, next);
-                        baseVertices.addNeighbor(childVertices);
-                        childVertices.addNeighbor(baseVertices);
-                    }
+                    Vertices childVertices = getOrCreate(state, next);
+                    baseVertices.addNeighbor(childVertices);
+                    childVertices.addNeighbor(baseVertices);
                 }
             }
         }
@@ -126,30 +124,30 @@ public class BFS {
     }
 
     public static void main(String[] args) {
-        try {
-            test();
-            System.out.println("Tests passed");
-        } catch (Error err) {
-            System.out.println(err.getMessage());
-        }
+//        try {
+//            test();
+//            System.out.println("Tests passed");
+//        } catch (Error err) {
+//            System.out.println(err.getMessage());
+//        }
 
-//        Scanner scanner = new Scanner(System.in);
-//        int n = scanner.nextInt();
-//        int m = scanner.nextInt();
-//        ArrayList<Integer>[] adj = (ArrayList<Integer>[])new ArrayList[n];
-//        for (int i = 0; i < n; i++) {
-//            adj[i] = new ArrayList<Integer>();
-//        }
-//        for (int i = 0; i < m; i++) {
-//            int x, y;
-//            x = scanner.nextInt();
-//            y = scanner.nextInt();
-//            adj[x - 1].add(y - 1);
-//            adj[y - 1].add(x - 1);
-//        }
-//        int x = scanner.nextInt() - 1;
-//        int y = scanner.nextInt() - 1;
-//        System.out.println(distance(adj, x, y));
+        Scanner scanner = new Scanner(System.in);
+        int n = scanner.nextInt();
+        int m = scanner.nextInt();
+        ArrayList<Integer>[] adj = (ArrayList<Integer>[])new ArrayList[n];
+        for (int i = 0; i < n; i++) {
+            adj[i] = new ArrayList<Integer>();
+        }
+        for (int i = 0; i < m; i++) {
+            int x, y;
+            x = scanner.nextInt();
+            y = scanner.nextInt();
+            adj[x - 1].add(y - 1);
+            adj[y - 1].add(x - 1);
+        }
+        int x = scanner.nextInt() - 1;
+        int y = scanner.nextInt() - 1;
+        System.out.println(distance(adj, x, y));
     }
 
     public static void test() {
@@ -191,12 +189,12 @@ public class BFS {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(0); adj[0].add(1); adj[0].add(2);
-                adj[1].add(1); adj[1].add(3);
-                adj[2].add(2); adj[2].add(3);
-                adj[3].add(3); adj[3].add(4); adj[3].add(5);
-                adj[4].add(4); adj[4].add(5); adj[4].add(6);
-                adj[5].add(5); adj[5].add(4); adj[5].add(6);
+                adj[0].add(1); adj[0].add(2);
+                adj[1].add(3);
+                adj[2].add(3);
+                adj[3].add(4); adj[3].add(5);
+                adj[4].add(5); adj[4].add(6);
+                adj[5].add(4); adj[5].add(6);
                 return adj;
             }
             case BOOK_YES: {
@@ -205,10 +203,10 @@ public class BFS {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(0); adj[0].add(1);
-                adj[1].add(1); adj[1].add(2);
-                adj[2].add(2); adj[2].add(0);
-                adj[3].add(3); adj[3].add(0);
+                adj[0].add(1);
+                adj[1].add(2);
+                adj[2].add(0);
+                adj[3].add(0);
                 return adj;
             }
             case BOOK_NO: {
@@ -217,9 +215,9 @@ public class BFS {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(0); adj[0].add(2); adj[0].add(3);
-                adj[2].add(2); adj[2].add(3);
-                adj[4].add(4); adj[4].add(1);
+                adj[0].add(2); adj[0].add(3);
+                adj[2].add(3);
+                adj[4].add(1);
                 return adj;
             }
         }
