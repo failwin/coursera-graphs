@@ -141,12 +141,10 @@ public class StronglyConnected {
             if (neighbors.size() > 0) {
                 for (int j = 0; j < neighbors.size(); j++) {
                     int next = neighbors.get(j);
-                    if (j != 0) {
-                        Vertices childVertices = getOrCreate(state, next);
-                        baseVertices.addNeighbor(childVertices);
+                    Vertices childVertices = getOrCreate(state, next);
+                    baseVertices.addNeighbor(childVertices);
 
-                        childVertices.addReversNeighbor(baseVertices);
-                    }
+                    childVertices.addReversNeighbor(baseVertices);
                 }
             }
         }
@@ -256,10 +254,10 @@ public class StronglyConnected {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(0); adj[0].add(1);
-                adj[1].add(1); adj[1].add(2);
-                adj[2].add(2); adj[2].add(3);
-                adj[3].add(3); adj[3].add(1);
+                adj[0].add(1);
+                adj[1].add(2);
+                adj[2].add(3);
+                adj[3].add(1);
                 return adj;
             }
             case BOOK_YES: {
@@ -268,10 +266,10 @@ public class StronglyConnected {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(0); adj[0].add(1);
-                adj[1].add(1); adj[1].add(2);
-                adj[2].add(2); adj[2].add(0);
-                adj[3].add(3); adj[3].add(0);
+                adj[0].add(1);
+                adj[1].add(2);
+                adj[2].add(0);
+                adj[3].add(0);
                 return adj;
             }
             case BOOK_NO: {
@@ -280,10 +278,10 @@ public class StronglyConnected {
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                 }
-                adj[1].add(1); adj[1].add(0);
-                adj[2].add(2); adj[2].add(1); adj[2].add(0);
-                adj[3].add(3); adj[3].add(2); adj[3].add(0);
-                adj[4].add(4); adj[4].add(1); adj[3].add(2);
+                adj[1].add(0);
+                adj[2].add(1); adj[2].add(0);
+                adj[3].add(2); adj[3].add(0);
+                adj[4].add(1); adj[3].add(2);
                 return adj;
             }
         }
@@ -292,7 +290,7 @@ public class StronglyConnected {
 
     public static void expect(int actual, int expect, String messgae) {
         if (actual != expect) {
-            throw new Error("Error: " + messgae);
+            throw new Error("Error: " + messgae + ", actual - " + actual);
         }
     }
 }
