@@ -7,9 +7,12 @@ public class NegativeCycle {
         NO_EDGES,
         MY_COMPLEX,
         BOOK_YES,
+        BOOK_YES_1,
         BOOK_YES_2,
         BOOK_NO,
     }
+
+    static int lastChecked = 0;
 
     static class Vertices {
         public int index;
@@ -52,7 +55,7 @@ public class NegativeCycle {
         public ArrayList<Vertices> getNeighbors() {
             ArrayList<Vertices> items = new ArrayList<Vertices>();
             for (Vertices item : this.neighbors.values()) {
-                if (item != null && !item.visited) {
+                if (item != null) {
                     items.add(item);
                 }
             }
@@ -97,14 +100,15 @@ public class NegativeCycle {
             Vertices parent = getOrCreate(graph, i);
             int parentCost = parent.cost;
 
+            ArrayList<Vertices> child = parent.getNeighbors();
+
             if (parentCost != Integer.MAX_VALUE) {
-                ArrayList<Vertices> child = parent.getNeighbors();
+
 
                 for (Vertices item : child) {
                     int childCost = item.getParentCost(parent.index);
                     if (item.cost > parentCost + childCost) {
                         item.cost = parentCost + childCost;
-//                        System.out.println("      Child " + item.index + " cost: " + item.cost);
                         item.parent = parent.index;
                         hasChanges = true;
                     }
@@ -112,6 +116,30 @@ public class NegativeCycle {
             }
         }
         return hasChanges;
+    }
+
+    private static Vertices getNext(Map<Integer, Vertices> graph) {
+        Vertices test = null;
+
+        boolean exit = false;
+        while (!exit) {
+            if (lastChecked > graph.size()) {
+                exit = true;
+                return null;
+            }
+            test = graph.get(lastChecked);
+            if (test == null) {
+                lastChecked++;
+            } else {
+                if (!test.visited) {
+                    exit = true;
+                    return test;
+                } else {
+                    lastChecked++;
+                }
+            }
+        }
+        return test;
     }
 
     private static int negativeCycle(ArrayList<Integer>[] adj, ArrayList<Integer>[] cost) {
@@ -122,14 +150,18 @@ public class NegativeCycle {
         Vertices start = getOrCreate(graph, 0);
         start.cost = 0;
 
+        ArrayList<Vertices> child = start.getNeighbors();
+        if (child.size() == 0) {
+            start = getOrCreate(graph, 1);
+            start.cost = 0;
+        }
+
         int count = adj.length;
         for (int i = 0; i < count - 1; i++) {
-//            System.out.println("Step " + i + " start");
             boolean hasChanges = explore(graph, count);
             if (!hasChanges) {
                 return 0;
             }
-//            System.out.println("Step " + i + " stop");
         }
 
         boolean hasChanges = explore(graph, count);
@@ -138,68 +170,58 @@ public class NegativeCycle {
     }
 
     public static void main(String[] args) {
-        try {
-            test();
-            System.out.println("Tests passed");
-        } catch (Error err) {
-            System.out.println(err.getMessage());
-        }
+//        try {
+//            test();
+//            System.out.println("Tests passed");
+//        } catch (Error err) {
+//            System.out.println(err.getMessage());
+//        }
 
-//        Scanner scanner = new Scanner(System.in);
-//        int n = scanner.nextInt();
-//        int m = scanner.nextInt();
-//        ArrayList<Integer>[] adj = (ArrayList<Integer>[])new ArrayList[n];
-//        ArrayList<Integer>[] cost = (ArrayList<Integer>[])new ArrayList[n];
-//        for (int i = 0; i < n; i++) {
-//            adj[i] = new ArrayList<Integer>();
-//            cost[i] = new ArrayList<Integer>();
-//        }
-//        for (int i = 0; i < m; i++) {
-//            int x, y, w;
-//            x = scanner.nextInt();
-//            y = scanner.nextInt();
-//            w = scanner.nextInt();
-//            adj[x - 1].add(y - 1);
-//            cost[x - 1].add(w);
-//        }
-//        System.out.println(negativeCycle(adj, cost));
+        Scanner scanner = new Scanner(System.in);
+        int n = scanner.nextInt();
+        int m = scanner.nextInt();
+        ArrayList<Integer>[] adj = (ArrayList<Integer>[])new ArrayList[n];
+        ArrayList<Integer>[] cost = (ArrayList<Integer>[])new ArrayList[n];
+        for (int i = 0; i < n; i++) {
+            adj[i] = new ArrayList<Integer>();
+            cost[i] = new ArrayList<Integer>();
+        }
+        for (int i = 0; i < m; i++) {
+            int x, y, w;
+            x = scanner.nextInt();
+            y = scanner.nextInt();
+            w = scanner.nextInt();
+            adj[x - 1].add(y - 1);
+            cost[x - 1].add(w);
+        }
+        System.out.println(negativeCycle(adj, cost));
     }
 
     public static void test() {
-        expect(
-                negativeCycle(prepare(TestCase.EMPTY, false), prepare(TestCase.EMPTY, true)),
-                0,"Empty"
-        );
-
-        expect(
-                negativeCycle(prepare(TestCase.NO_EDGES, false), prepare(TestCase.NO_EDGES, true)),
-                0,"No edges"
-        );
+//        expect(
+//                negativeCycle(prepare(TestCase.EMPTY, false), prepare(TestCase.EMPTY, true)),
+//                0,"Empty"
+//        );
+//
+//        expect(
+//                negativeCycle(prepare(TestCase.NO_EDGES, false), prepare(TestCase.NO_EDGES, true)),
+//                0,"No edges"
+//        );
 //
 //        expect(
 //                negativeCycle(prepare(TestCase.MY_COMPLEX, false), prepare(TestCase.MY_COMPLEX, true)),
-//                3,"My complex"
-//        );
-
-        expect(
-                negativeCycle(prepare(TestCase.MY_COMPLEX, false), prepare(TestCase.MY_COMPLEX, true)),
-                0,"My complex"
-        );
-
-        expect(
-                negativeCycle(prepare(TestCase.BOOK_YES, false), prepare(TestCase.BOOK_YES, true)),
-                1,"Book yes"
-        );
-
-//        expect(
-//                negativeCycle(prepare(TestCase.BOOK_YES_2, false), prepare(TestCase.BOOK_YES_2, true)),
-//                6,"Book yes 2"
+//                0,"My complex"
 //        );
 //
 //        expect(
-//                negativeCycle(prepare(TestCase.BOOK_NO, false), prepare(TestCase.BOOK_NO, true)),
-//                -1,"Book no"
+//                negativeCycle(prepare(TestCase.BOOK_YES, false), prepare(TestCase.BOOK_YES, true)),
+//                1,"Book yes"
 //        );
+
+        expect(
+                negativeCycle(prepare(TestCase.BOOK_YES_1, false), prepare(TestCase.BOOK_YES_1, true)),
+                1,"Book yes 1"
+        );
     };
 
     public static ArrayList<Integer>[] prepare(TestCase testCase, boolean isCost) {
@@ -255,33 +277,19 @@ public class NegativeCycle {
                 adj[0].add(1); cost[0].add(-5);
                 adj[1].add(2); cost[1].add(2);
                 adj[2].add(0); cost[2].add(1);
-                //adj[3].add(0); cost[3].add(2);
                 return isCost ? cost : adj;
             }
-            case BOOK_YES_2: {
-                vertices = 5;
+            case BOOK_YES_1: {
+                vertices = 4;
                 adj = (ArrayList<Integer>[])new ArrayList[vertices];
                 cost = (ArrayList<Integer>[])new ArrayList[vertices];
                 for (int i = 0; i < vertices; i++) {
                     adj[i] = new ArrayList<Integer>();
                     cost[i] = new ArrayList<Integer>();
                 }
-                adj[0].add(1); cost[0].add(4); adj[0].add(2); cost[0].add(2);
-                adj[1].add(2); cost[1].add(2); adj[1].add(3); cost[1].add(2); adj[1].add(4); cost[1].add(3);
-                adj[2].add(1); cost[2].add(1); adj[2].add(4); cost[2].add(4); adj[2].add(3); cost[2].add(4);
-                adj[4].add(3); cost[4].add(1);
-                return isCost ? cost : adj;
-            }
-            case BOOK_NO: {
-                vertices = 3;
-                adj = (ArrayList<Integer>[])new ArrayList[vertices];
-                cost = (ArrayList<Integer>[])new ArrayList[vertices];
-                for (int i = 0; i < vertices; i++) {
-                    adj[i] = new ArrayList<Integer>();
-                    cost[i] = new ArrayList<Integer>();
-                }
-                adj[0].add(1); cost[0].add(7); adj[0].add(2); cost[0].add(5);
-                adj[1].add(2); cost[1].add(2);
+                adj[1].add(1); cost[1].add(-5);
+                adj[2].add(2); cost[2].add(2);
+                adj[3].add(0); cost[3].add(1);
                 return isCost ? cost : adj;
             }
         }
