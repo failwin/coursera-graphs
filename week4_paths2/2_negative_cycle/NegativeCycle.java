@@ -21,6 +21,9 @@ public class NegativeCycle {
 
         public int parent = -1;
 
+        public int startParent = -1;
+        public boolean startChecked = false;
+
         public int cost = Integer.MAX_VALUE;
 
         private Map<Integer, Vertices> neighbors = new HashMap<Integer, Vertices>();
@@ -49,6 +52,7 @@ public class NegativeCycle {
             int index = neighbor.index;
             if (!this.neighbors.containsKey(index)) {
                 this.neighbors.put(index, neighbor);
+                neighbor.startParent = this.index;
             }
         }
 
@@ -100,10 +104,8 @@ public class NegativeCycle {
             Vertices parent = getOrCreate(graph, i);
             int parentCost = parent.cost;
 
-            ArrayList<Vertices> child = parent.getNeighbors();
-
             if (parentCost != Integer.MAX_VALUE) {
-
+                ArrayList<Vertices> child = parent.getNeighbors();
 
                 for (Vertices item : child) {
                     int childCost = item.getParentCost(parent.index);
@@ -118,43 +120,31 @@ public class NegativeCycle {
         return hasChanges;
     }
 
-    private static Vertices getNext(Map<Integer, Vertices> graph) {
-        Vertices test = null;
+    private static Vertices getParent(Map<Integer, Vertices> graph, Vertices start) {
+        if (start == null) {
+            return null;
+        }
+        if (start.startChecked) {
+            return start;
+        }
+        start.startChecked = true;
+        return getParent(graph, graph.get(start.startParent));
+    }
 
-        boolean exit = false;
-        while (!exit) {
-            if (lastChecked > graph.size()) {
-                exit = true;
-                return null;
-            }
-            test = graph.get(lastChecked);
-            if (test == null) {
-                lastChecked++;
-            } else {
-                if (!test.visited) {
-                    exit = true;
-                    return test;
-                } else {
-                    lastChecked++;
-                }
+    private static void initStarts(Map<Integer, Vertices> graph) {
+        for (Vertices item : graph.values()) {
+            Vertices parent = getParent(graph, item);
+            if (parent != null) {
+                parent.cost = 0;
             }
         }
-        return test;
     }
 
     private static int negativeCycle(ArrayList<Integer>[] adj, ArrayList<Integer>[] cost) {
         Map<Integer, Vertices> graph = new HashMap<Integer, Vertices>();
 
         fillGraph(graph, adj, cost);
-
-        Vertices start = getOrCreate(graph, 0);
-        start.cost = 0;
-
-        ArrayList<Vertices> child = start.getNeighbors();
-        if (child.size() == 0) {
-            start = getOrCreate(graph, 1);
-            start.cost = 0;
-        }
+        initStarts(graph);
 
         int count = adj.length;
         for (int i = 0; i < count - 1; i++) {
@@ -198,25 +188,25 @@ public class NegativeCycle {
     }
 
     public static void test() {
-//        expect(
-//                negativeCycle(prepare(TestCase.EMPTY, false), prepare(TestCase.EMPTY, true)),
-//                0,"Empty"
-//        );
-//
-//        expect(
-//                negativeCycle(prepare(TestCase.NO_EDGES, false), prepare(TestCase.NO_EDGES, true)),
-//                0,"No edges"
-//        );
-//
+        expect(
+                negativeCycle(prepare(TestCase.EMPTY, false), prepare(TestCase.EMPTY, true)),
+                0,"Empty"
+        );
+
+        expect(
+                negativeCycle(prepare(TestCase.NO_EDGES, false), prepare(TestCase.NO_EDGES, true)),
+                0,"No edges"
+        );
+
 //        expect(
 //                negativeCycle(prepare(TestCase.MY_COMPLEX, false), prepare(TestCase.MY_COMPLEX, true)),
 //                0,"My complex"
 //        );
 //
-//        expect(
-//                negativeCycle(prepare(TestCase.BOOK_YES, false), prepare(TestCase.BOOK_YES, true)),
-//                1,"Book yes"
-//        );
+        expect(
+                negativeCycle(prepare(TestCase.BOOK_YES, false), prepare(TestCase.BOOK_YES, true)),
+                1,"Book yes"
+        );
 
         expect(
                 negativeCycle(prepare(TestCase.BOOK_YES_1, false), prepare(TestCase.BOOK_YES_1, true)),
